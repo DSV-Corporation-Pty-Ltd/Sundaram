@@ -158,7 +158,7 @@
         </div>
         <div class="form-group">
           <label for="callPurpose" required>Call Purpose</label>
-          <select id="callPurpose">
+          <!-- <select id="callPurpose">
             <option value="" disabled selected>-None-</option>
             <option value="Prospecting">Prospecting</option>
             <option value="Administrative">Administrative</option>
@@ -166,7 +166,8 @@
             <option value="Demo">Demo</option>
             <option value="Project">Project</option>
             <option value="Support">Support</option>
-          </select>
+          </select> -->
+          <select id="callPurpose"></select>
         </div>
         <div class="form-group">
           <label for="Call Agenda">Call Agenda</label>
@@ -188,6 +189,37 @@
     console.log(data);
     var modulename = data.Entity;
     var recID = data.EntityId[0];
+
+    // Fetch Call_Purpose picklist options dynamically
+    ZOHO.CRM.META.getFields({ Entity: "Calls" })
+      .then(function (metaResponse) {
+        console.log("Fields metadata:", metaResponse); // debug
+        const fields = metaResponse.fields;
+        const callPurposeField = fields.find(field => field.api_name === "Call_Purpose");
+
+        const callPurposeDropdown = document.getElementById("callPurpose");
+        // callPurposeDropdown.innerHTML = `<option value="" disabled selected>-None-</option>`;
+
+        if (callPurposeField && callPurposeField.pick_list_values) {
+          callPurposeField.pick_list_values.forEach(option => {
+            if (option.actual_value) {
+              const opt = document.createElement("option");
+              opt.value = option.actual_value;
+              opt.textContent = option.display_value;
+              callPurposeDropdown.appendChild(opt);
+            }
+          });
+        } else {
+          console.warn("Call_Purpose field not found or has no picklist values.");
+          callPurposeDropdown.innerHTML = `<option disabled>No options available</option>`;
+        }
+      })
+      .catch(function (err) {
+        console.error("Failed to load Call_Purpose options:", err);
+      });
+
+
+
     // console.log(recID)
     document.getElementById("callFor").value = modulename || "N/A";
     document.getElementById("module").textContent = modulename || "N/A";
